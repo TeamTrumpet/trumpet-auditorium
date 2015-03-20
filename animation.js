@@ -368,32 +368,32 @@ function run(images) {
 
 function runPrefix(prefix) {
   run([
-    prefix + '/posx.jpg',
-    prefix + '/negx.jpg',
-    prefix + '/posy.jpg',
-    prefix + '/negy.jpg',
-    prefix + '/posz.jpg',
-    prefix + '/negz.jpg'
+    'images/' + prefix + '/posx.jpg',
+    'images/' + prefix + '/negx.jpg',
+    'images/' + prefix + '/posy.jpg',
+    'images/' + prefix + '/negy.jpg',
+    'images/' + prefix + '/posz.jpg',
+    'images/' + prefix + '/negz.jpg'
   ]);
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {
   // run([
-  //   'canary/pos-x.png',
-  //   'canary/neg-x.png',
-  //   'canary/pos-y.png',
-  //   'canary/neg-y.png',
-  //   'canary/pos-z.png',
-  //   'canary/neg-z.png'
+  //   'images/canary/pos-x.png',
+  //   'images/canary/neg-x.png',
+  //   'images/canary/pos-y.png',
+  //   'images/canary/neg-y.png',
+  //   'images/canary/pos-z.png',
+  //   'images/canary/neg-z.png'
   // ]);
 
   // run([
-  //   'yokohama/pos-x.jpg',
-  //   'yokohama/neg-x.jpg',
-  //   'yokohama/pos-y.jpg',
-  //   'yokohama/neg-y.jpg',
-  //   'yokohama/pos-z.jpg',
-  //   'yokohama/neg-z.jpg'
+  //   'images/yokohama/pos-x.jpg',
+  //   'images/yokohama/neg-x.jpg',
+  //   'images/yokohama/pos-y.jpg',
+  //   'images/yokohama/neg-y.jpg',
+  //   'images/yokohama/pos-z.jpg',
+  //   'images/yokohama/neg-z.jpg'
   // ]);
 
   // runPrefix('storforsen');
