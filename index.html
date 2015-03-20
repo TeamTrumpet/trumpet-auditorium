@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Panorama Viewer</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style type="text/css">
+			body {
+				margin: 0px;
+				overflow: hidden;
+			}
+			.controls a {
+				position: absolute;
+				display: block;
+				text-align: center;
+				background-color: rgba(0, 188, 212, 0.5);
+				text-indent: -9999px;
+
+				-webkit-transition: all 0.1s; /* Safari */
+				transition: all 0.1s;
+			}
+
+			.controls a:active {
+				background-color: rgba(0, 188, 212, 0.9);
+			}
+
+			#up, #down {
+				width: 100%;
+				height: 20px;
+			}
+
+			#up:hover, #down:hover {
+				height: 30px;
+			}
+
+			#left, #right {
+				width: 20px;
+				height: 100%;
+			}
+
+			#left:hover, #right:hover {
+				width: 30px;
+			}
+
+			#up { top: 0; }
+			#down { bottom: 0; }
+			#left { left: 0; }
+			#right { right: 0; }
+
+			#debug {
+				position: absolute;
+				top: 20px;
+				left: 20px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="controls">
+			<a href="#left" id="left" title="Move Left">Left</a>
+			<a href="#right" id="right" title="Move Right">Right</a>
+			<a href="#up" id="up" title="Move Up">Up</a>
+			<a href="#down" id="down" title="Move Down">Down</a>
+		</div>
+		<pre id="debug"></pre>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.2/underscore-min.js"></script>
+		<script type="text/javascript" src="animation.js"></script>
+	</body>
+</html>
