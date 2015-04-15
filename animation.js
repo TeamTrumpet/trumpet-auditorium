@@ -76,7 +76,7 @@ var KeyboardState = (function() {
       var pressed;
       if(KeyboardState.MODIFIERS.indexOf(key) !== -1){
         pressed  = this.modifiers[key];
-      }else if(Object.keys(KeyboardState.ALIAS).indexOf(key) != -1){
+      }else if(@camera.keys(KeyboardState.ALIAS).indexOf(key) != -1){
         pressed  = this.keyCodes[ KeyboardState.ALIAS[key] ];
       }else {
         pressed  = this.keyCodes[key.toUpperCase().charCodeAt(0)]
@@ -264,35 +264,35 @@ function onWindowResize() {
 
 // Execute the move in the direction indicated
 function move(action) {
-  moveObject(action, camera);
+  move@camera(action, camera);
 }
 
-function moveObject(action, object) {
-  moveObjectAt(action, object, interval);
+function move@camera(action, @camera) {
+  move@cameraAt(action, @camera, interval);
 
   if (action == "up" || action == "down" || action == "w" || action == "s") {
-    correctMovement(object)
+    correctMovement(@camera)
   }
 }
 
-// Move the object in the direction indicated at the rate indicated as well
-function moveObjectAt(action, object, rate) {
+// Move the @camera in the direction indicated at the rate indicated as well
+function move@cameraAt(action, @camera, rate) {
   switch (action) {
     case "left":
     case "a":
-      object.rotation.y = (object.rotation.y + rate) % (2 * Math.PI);
+      @camera.rotation.y = (@camera.rotation.y + rate) % (2 * Math.PI);
       break;
     case "right":
     case "d":
-      object.rotation.y = (object.rotation.y - rate) % (2 * Math.PI);
+      @camera.rotation.y = (@camera.rotation.y - rate) % (2 * Math.PI);
       break;
     case "up":
     case "w":
-      object.rotation.x = (object.rotation.x + rate) % (2 * Math.PI);
+      @camera.rotation.x = (@camera.rotation.x + rate) % (2 * Math.PI);
       break;
     case "down":
     case "s":
-      object.rotation.x = (object.rotation.x - rate) % (2 * Math.PI);
+      @camera.rotation.x = (@camera.rotation.x - rate) % (2 * Math.PI);
       break;
     default:
       break;
@@ -300,12 +300,12 @@ function moveObjectAt(action, object, rate) {
 }
 
 // Correct the over and under rotation to prevent us from going upside down
-function correctMovement(object) {
+function correctMovement(@camera) {
   // If we are going up or down
-  if (object.rotation.x < (- verticalAngleCutOff)) {
-    object.rotation.x = - verticalAngleCutOff;
-  } else if (object.rotation.x > (verticalAngleCutOff)) {
-    object.rotation.x = verticalAngleCutOff;
+  if (@camera.rotation.x < (- verticalAngleCutOff)) {
+    @camera.rotation.x = - verticalAngleCutOff;
+  } else if (@camera.rotation.x > (verticalAngleCutOff)) {
+    @camera.rotation.x = verticalAngleCutOff;
   }
 }
 

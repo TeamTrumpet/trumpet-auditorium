@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Trumpet</title>
+  <link rel="stylesheet" href="style.css" type="text/css" />
+  <link href='//fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
+  <link href='//fonts.googleapis.com/css?family=Raleway:400,300,500' rel='stylesheet' type='text/css'>
+</head>
+<body>
+  <div class="main" ontouchstart="">
+    <pre id="debug"></pre>
+    <div id="three-sixty-view" class="three-sixty-view">
+      <input type="button" value="<  Go Back" class="button go-back-btn" />
+      <div class="buttons">
+        <div class="compass">
+          <img data-map-control="reset" src="images/compass-direction-icon.svg" class="direction" />
+          <img data-map-control="left" src="images/compass-arrows-icon.svg" class="arrows arrows-left"/>
+          <img data-map-control="right" src="images/compass-arrows-icon.svg" class="arrows arrows-right"/>
+        </div>
+        <input data-map-control="in" type="button" value="" class="plus-btn" />
+        <input data-map-control="out" type="button" value="" class="minus-btn" />
+      </div>
+    </div>
+
+  </div>
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r11/Stats.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.2/underscore-min.js"></script>
+  <script type="text/javascript" src="build/threesixty.min.js"></script>
+</body>
+</html>
