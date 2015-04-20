@@ -22,14 +22,6 @@ class ThreeSixty
 
     @directions = {}
 
-    @mouse =
-      active: false
-      panning: false
-      speed:
-        x: 0
-        y: 0
-        z: 0
-
     @panTo =
       active: false
       time:
@@ -268,11 +260,7 @@ class ThreeSixty
       when 40, 83 then ThreeSixty::DOWN
       when 187 then ThreeSixty::IN
       when 189 then ThreeSixty::OUT
-      when 67 then ThreeSixty::CAMERA_MODE
-      when 86 then ThreeSixty::ARROW_MODE
-      else
-        console.error "direction not known: #{key}"
-        false
+      else false
 
   move: (direction) =>
     switch direction
@@ -372,7 +360,7 @@ class ThreeSixty
 
   shouldRerender: =>
     # If there are some directions active...
-    @mouse.panning or _.some(@directions) or @panTo.active
+    _.some(@directions) or @panTo.active
 
   doRender: ->
     # Render the scene
