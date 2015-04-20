@@ -85,11 +85,6 @@ class ThreeSixty
 
     @parentObject.add @camera
 
-    # update the selectedObject variable
-    @selectedObject = @camera
-
-    # @camera.position.z = ThreeSixty::Scale * 2
-
     # Because we don't rotate in the Z direction, this will be a natural rotation order
     @camera.rotation.order = 'YXZ'
 
@@ -131,52 +126,6 @@ class ThreeSixty
 
       # build the skybox Mesh using the texture cube
       skyBox = new (THREE.Mesh)(meshGeometry, material)
-
-      # Add mapping wireframe
-
-      # material.wireframe = true
-
-      # add box
-      addBox = (() =>
-        d = Math.sqrt(2 * ThreeSixty::Scale * ThreeSixty::Scale)
-        geometry = new (THREE.BoxGeometry)( d, d, d )
-
-        material = new (THREE.MeshBasicMaterial)( { color: 0x00ff00 } )
-        material.wireframe = true
-
-        cube = new (THREE.Mesh)( geometry, material )
-
-        cube.position.x = 0
-        cube.position.y = 0
-        cube.position.z = 0
-
-        @scene.add cube
-      )
-
-      # addBox()
-
-      # # Add cone
-      # addCone = (() =>
-      #   geometry = new THREE.CylinderGeometry( 0, ThreeSixty::Scale/10, ThreeSixty::Scale/5, 32 )
-      #   # material = new THREE.MeshBasicMaterial( {color: 0xffff00} )
-      #   # camerate the material
-      #   material = new (THREE.ShaderMaterial)(
-      #     fragmentShader: shader.fragmentShader
-      #     vertexShader: shader.vertexShader
-      #     uniforms: uniforms
-      #     side: THREE.BackSide)
-      #
-      #   @arrowHelper = new THREE.Mesh( geometry, material )
-      #
-      #   @arrowHelper.rotation.x = Math.PI/2
-      #
-      #   # fix rotation
-      #   @arrowHelper.rotation.order = 'YXZ'
-      #
-      #   @parentObject.add @arrowHelper
-      # )
-      #
-      # addCone()
 
       # and add it to the scene
       @scene.add skyBox
@@ -226,7 +175,7 @@ class ThreeSixty
     @panTo.from.rotation = fromRotation
     @panTo.to.rotation = fromRotation.clone()
 
-    @panTo.from.position = @selectedObject.position.z
+    @panTo.from.position = @camera.position.z
     @panTo.to.position = @panTo.from.position
 
     switch operation
@@ -336,12 +285,12 @@ class ThreeSixty
       when ThreeSixty::DOWN
         @parentObject.rotation.x -= Math.PI / 200
       when ThreeSixty::IN
-        @selectedObject.position.z += ThreeSixty::Scale / -100
+        @camera.position.z += ThreeSixty::Scale / -100
       when ThreeSixty::OUT
-        @selectedObject.position.z += ThreeSixty::Scale / 100
+        @camera.position.z += ThreeSixty::Scale / 100
       else null
 
-    @selectedObject.position.z = @clampPosition(@selectedObject.position.z)
+    @camera.position.z = @clampPosition(@camera.position.z)
     @clampRotation(@parentObject)
 
     return
@@ -384,13 +333,13 @@ class ThreeSixty
     if @parentObject.rotation.x != @panTo.to.rotation.x
       @parentObject.rotation.x = @quadraticEaseInEaseOut(Tc, @panTo.to.rotation.x, @panTo.from.rotation.x)
 
-    if @selectedObject.position.z != @panTo.to.position
-      @selectedObject.position.z = @quadraticEaseInEaseOut(Tc, @panTo.to.position, @panTo.from.position)
+    if @camera.position.z != @panTo.to.position
+      @camera.position.z = @quadraticEaseInEaseOut(Tc, @panTo.to.position, @panTo.from.position)
 
     if Tc >= @panTo.time.end
       @parentObject.rotation.y = @panTo.to.rotation.y
       @parentObject.rotation.x = @panTo.to.rotation.x
-      @selectedObject.position.z = @panTo.to.position
+      @camera.position.z = @panTo.to.position
 
       # stop panning
       @panTo.active = false
