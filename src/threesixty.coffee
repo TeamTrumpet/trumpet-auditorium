@@ -1,25 +1,26 @@
 class ThreeSixty
 
-  # Global settings
-  VerticalAngleCutOff: Math.PI / 4
+  Scale: 10
 
-  DiectionalIncrement: Math.PI / 128
-
-  DriftCutOff: 0.01
-
-  DriftSlowdownRate: 0.90
+  MaxRotation: Math.PI/4
 
   # Direction constants
-  LEFT: 0
-  RIGHT: 1
-  UP: 2
-  DOWN: 3
+  LEFT: 'left'
+  RIGHT: 'right'
+  UP: 'up'
+  DOWN: 'down'
+  IN: 'in'
+  OUT: 'out'
+  RESET: 'reset'
+
+  CAMERA_MODE: 'camera_mode'
+  ARROW_MODE: 'arrow_mode'
 
   constructor: (box, urls) ->
     @urls = urls
     @box = box
 
-    @directions = [false, false, false, false]
+    @directions = {}
 
     @mouse =
       active: false
@@ -29,9 +30,25 @@ class ThreeSixty
         y: 0
         z: 0
 
+    @panTo =
+      active: false
+      time:
+        start: 0
+        end: 0
+      from:
+        rotation:
+          x: 0
+          y: 0
+          z: 0
+      to:
+        rotation:
+          x: 0
+          y: 0
+          z: 0
+
     @isRendering = false
 
-    @stats = new Stats()
+    @compassNeedle = document.getElementById 'compass-direction-icon'
 
   start: ->
     # Create the scene
@@ -60,7 +77,18 @@ class ThreeSixty
     @scene = new (THREE.Scene)
 
     # Init Camera
-    @camera = new (THREE.PerspectiveCamera)(70, window.innerWidth / window.innerHeight, 1, 1000)
+    @camera = new (THREE.PerspectiveCamera)(70, window.innerWidth / window.innerHeight, 1, ThreeSixty::Scale * 10)
+
+    @parentObject = new THREE.Object3D()
+    @parentObject.rotation.order = 'YXZ'
+    @scene.add @parentObject
+
+    @parentObject.add @camera
+
+    # update the selectedObject variable
+    @selectedObject = @camera
+
+    # @camera.position.z = ThreeSixty::Scale * 2
 
     # Because we don't rotate in the Z direction, this will be a natural rotation order
     @camera.rotation.order = 'YXZ'
@@ -99,29 +127,56 @@ class ThreeSixty
         side: THREE.BackSide)
 
       # Generate a sphere geometry
-      meshGeometry = new (THREE.SphereGeometry)(1000, 32, 32)
+      meshGeometry = new (THREE.SphereGeometry)(ThreeSixty::Scale, 32, 32)
 
       # build the skybox Mesh using the texture cube
       skyBox = new (THREE.Mesh)(meshGeometry, material)
 
-      # # Add mapping wireframe
-      #
+      # Add mapping wireframe
+
       # material.wireframe = true
+
+      # add box
+      addBox = (() =>
+        d = Math.sqrt(2 * ThreeSixty::Scale * ThreeSixty::Scale)
+        geometry = new (THREE.BoxGeometry)( d, d, d )
+
+        material = new (THREE.MeshBasicMaterial)( { color: 0x00ff00 } )
+        material.wireframe = true
+
+        cube = new (THREE.Mesh)( geometry, material )
+
+        cube.position.x = 0
+        cube.position.y = 0
+        cube.position.z = 0
+
+        @scene.add cube
+      )
+
+      # addBox()
+
+      # # Add cone
+      # addCone = (() =>
+      #   geometry = new THREE.CylinderGeometry( 0, ThreeSixty::Scale/10, ThreeSixty::Scale/5, 32 )
+      #   # material = new THREE.MeshBasicMaterial( {color: 0xffff00} )
+      #   # camerate the material
+      #   material = new (THREE.ShaderMaterial)(
+      #     fragmentShader: shader.fragmentShader
+      #     vertexShader: shader.vertexShader
+      #     uniforms: uniforms
+      #     side: THREE.BackSide)
       #
-      # (() =>
-      #   geometry = new (THREE.BoxGeometry)( 999, 999, 999 )
+      #   @arrowHelper = new THREE.Mesh( geometry, material )
       #
-      #   material = new (THREE.MeshBasicMaterial)( { color: 0x00ff00 } )
-      #   material.wireframe = true
+      #   @arrowHelper.rotation.x = Math.PI/2
       #
-      #   cube = new (THREE.Mesh)( geometry, material )
+      #   # fix rotation
+      #   @arrowHelper.rotation.order = 'YXZ'
       #
-      #   cube.position.x = 0
-      #   cube.position.y = 0
-      #   cube.position.z = 0
+      #   @parentObject.add @arrowHelper
+      # )
       #
-      #   @scene.add cube
-      # )()
+      # addCone()
 
       # and add it to the scene
       @scene.add skyBox
@@ -132,16 +187,6 @@ class ThreeSixty
     @renderer = new (THREE.WebGLRenderer)()
     @renderer.setSize window.innerWidth, window.innerHeight
     @box.appendChild @renderer.domElement
-
-    # Set FPS mode
-    @stats.setMode 0
-
-    # Adjust styles
-    @stats.domElement.style.position = 'absolute';
-    @stats.domElement.style.right = '0px';
-    @stats.domElement.style.top = '0px';
-
-    document.body.appendChild @stats.domElement
 
     cb()
 
@@ -156,7 +201,65 @@ class ThreeSixty
     @renderer.domElement.addEventListener 'mouseup', @eventMouseUp, false
     @renderer.domElement.addEventListener 'mouseout', @eventMouseUp, false
 
+    mapControls = document.querySelectorAll '[data-map-control]'
+
+    for mapControl in mapControls
+      do (mapControl) =>
+        direction = mapControl.dataset.mapControl
+
+        mapControl.addEventListener 'click', (e) =>
+          e.preventDefault()
+
+          @eventDoDomControl direction
+
+          return
+
     cb()
+
+  eventDoDomControl: (operation) =>
+    @panTo.time.start = (new Date()).getTime()
+    @panTo.time.end = @panTo.time.start + 700
+
+    # get the current camera rotation
+    fromRotation = @parentObject.rotation.clone()
+
+    @panTo.from.rotation = fromRotation
+    @panTo.to.rotation = fromRotation.clone()
+
+    @panTo.from.position = @selectedObject.position.z
+    @panTo.to.position = @panTo.from.position
+
+    switch operation
+      when ThreeSixty::LEFT
+        # move us PI/2 in the +Y direction
+        @panTo.to.rotation.y = @panTo.from.rotation.y + Math.PI/2
+      when ThreeSixty::RIGHT
+        # move us PI/2 in the -Y direction
+        @panTo.to.rotation.y = @panTo.from.rotation.y - Math.PI/2
+      when ThreeSixty::IN
+        @panTo.to.position -= 1
+      when ThreeSixty::OUT
+        @panTo.to.position += 1
+      when ThreeSixty::RESET
+        @parentObject.rotation.y = @parentObject.rotation.y % (2 * Math.PI)
+
+        @panTo.to.rotation.x = 0
+        @panTo.to.rotation.y = 0
+        @panTo.to.position = 0
+      else
+        console.log "can't do #{operation}"
+        return
+
+    @panTo.to.position = @clampPosition(@panTo.to.position)
+    @clampRotation(@panTo.to)
+
+    # mark the panning as active
+    @panTo.active = true
+
+    # begin the render
+    @startRender()
+
+    return
 
   eventOnKeyDown: (e) =>
     # Get the direction
@@ -164,6 +267,8 @@ class ThreeSixty
 
     # If this is a direction key...
     if dir?
+      e.preventDefault()
+
       # Perform it's action
       @beginKeyPress dir
 
@@ -182,24 +287,13 @@ class ThreeSixty
       # And finish
       return
 
-  eventMouseDown: (e) =>
-    @mouse.active = true
-    @mouse.panning = true
-
-    @startRender()
-
+  eventMouseDown: () =>
     return
 
   eventMouseMove: (e) =>
-    if @mouse.active
-      @mouse.speed.x = e.movementY
-      @mouse.speed.y = e.movementX
-
     return
 
-  eventMouseUp: (e) =>
-    @mouse.active = false
-
+  eventMouseUp: () =>
     return
 
   endKeyPress: (direction) =>
@@ -223,32 +317,51 @@ class ThreeSixty
       when 38, 87 then ThreeSixty::UP
       when 39, 68 then ThreeSixty::RIGHT
       when 40, 83 then ThreeSixty::DOWN
-      else null
+      when 187 then ThreeSixty::IN
+      when 189 then ThreeSixty::OUT
+      when 67 then ThreeSixty::CAMERA_MODE
+      when 86 then ThreeSixty::ARROW_MODE
+      else
+        console.error "direction not known: #{key}"
+        false
 
   move: (direction) =>
     switch direction
       when ThreeSixty::LEFT
-        @camera.rotation.y = @camera.rotation.y + ThreeSixty::DiectionalIncrement
+        @parentObject.rotation.y += Math.PI / 200
       when ThreeSixty::UP
-        @camera.rotation.x = @camera.rotation.x + ThreeSixty::DiectionalIncrement
-
-        # Overbound corrections
-        @boundMovements()
+        @parentObject.rotation.x += Math.PI / 200
       when ThreeSixty::RIGHT
-        @camera.rotation.y = @camera.rotation.y - ThreeSixty::DiectionalIncrement
+        @parentObject.rotation.y -= Math.PI / 200
       when ThreeSixty::DOWN
-        @camera.rotation.x = @camera.rotation.x - ThreeSixty::DiectionalIncrement
+        @parentObject.rotation.x -= Math.PI / 200
+      when ThreeSixty::IN
+        @selectedObject.position.z += ThreeSixty::Scale / -100
+      when ThreeSixty::OUT
+        @selectedObject.position.z += ThreeSixty::Scale / 100
+      else null
 
-        # Overbound corrections
-        @boundMovements()
+    @selectedObject.position.z = @clampPosition(@selectedObject.position.z)
+    @clampRotation(@parentObject)
 
     return
 
-  boundMovements: =>
-    if @camera.rotation.x > ThreeSixty::VerticalAngleCutOff
-      @camera.rotation.x = ThreeSixty::VerticalAngleCutOff
-    else if @camera.rotation.x < -ThreeSixty::VerticalAngleCutOff
-      @camera.rotation.x = -ThreeSixty::VerticalAngleCutOff
+  clampPosition: (position) =>
+    if position < ThreeSixty::Scale * -0.4
+      ThreeSixty::Scale * -0.4
+    else if position > 0
+      0
+    else
+      position
+
+  clampRotation: (object) =>
+    if object.rotation.x > ThreeSixty::MaxRotation
+      object.rotation.x = ThreeSixty::MaxRotation
+
+    if object.rotation.x < -ThreeSixty::MaxRotation
+      object.rotation.x = -ThreeSixty::MaxRotation
+
+    return
 
   startRender: =>
     # If it is not rendering...
@@ -262,41 +375,57 @@ class ThreeSixty
 
     return
 
-  processMouseMovements: () =>
-    @camera.rotation.x += @mouse.speed.x / 400
-    @camera.rotation.y += @mouse.speed.y / 400
+  processPanTo: () =>
+    Tc = (new Date()).getTime()
 
-    # Stop drift
-    @mouse.speed.x *= ThreeSixty::DriftSlowdownRate
-    @mouse.speed.y *= ThreeSixty::DriftSlowdownRate
-    if !@mouse.active and Math.abs(@mouse.speed.x) < ThreeSixty::driftSpeedCutoff and Math.abs(@mouse.speed.y) < ThreeSixty::driftSpeedCutoff
-      # Stop the movement
-      @mouse.speed.x = 0
-      @mouse.speed.y = 0
+    if @parentObject.rotation.y != @panTo.to.rotation.y
+      @parentObject.rotation.y = @quadraticEaseInEaseOut(Tc, @panTo.to.rotation.y, @panTo.from.rotation.y)
 
-      # Stop the panning
-      @mouse.panning = false
+    if @parentObject.rotation.x != @panTo.to.rotation.x
+      @parentObject.rotation.x = @quadraticEaseInEaseOut(Tc, @panTo.to.rotation.x, @panTo.from.rotation.x)
 
-    # Overbound corrections
-    @boundMovements()
+    if @selectedObject.position.z != @panTo.to.position
+      @selectedObject.position.z = @quadraticEaseInEaseOut(Tc, @panTo.to.position, @panTo.from.position)
+
+    if Tc >= @panTo.time.end
+      @parentObject.rotation.y = @panTo.to.rotation.y
+      @parentObject.rotation.x = @panTo.to.rotation.x
+      @selectedObject.position.z = @panTo.to.position
+
+      # stop panning
+      @panTo.active = false
+
+    return
+
+  quadraticEaseInEaseOut: (Tc, G, B) =>
+    # compute time
+    t = 2 * (Tc - @panTo.time.start) / (@panTo.time.end - @panTo.time.start)
+
+    if t < 1
+      return ((G - B)/2) * t * t + B
+    else
+      t = t - 1
+      return ((B - G)/2) * (t * (t - 2) - 1) + B
 
   processMovements: () =>
     _.map @directions, (enabled, direction) =>
       @move direction if enabled
 
-    if @mouse.panning
-      @processMouseMovements()
+    if @panTo.active
+      @processPanTo()
+
+    # adjust the rotation of the compass needle
+    rotationString = "rotate(#{@parentObject.rotation.y}rad)"
+    @compassNeedle.style.webkitTransform = rotationString
+    @compassNeedle.style.transform = rotationString
 
     return
 
-  shouldRerender: ->
+  shouldRerender: =>
     # If there are some directions active...
-    @mouse.panning or _.some @directions
+    @mouse.panning or _.some(@directions) or @panTo.active
 
   doRender: ->
-    # Print debug
-    document.getElementById('debug').innerHTML = JSON.stringify(@camera.rotation, null, 2)
-
     # Render the scene
     @renderer.render @scene, @camera
 
@@ -308,13 +437,8 @@ class ThreeSixty
       # Process all the movements
       @processMovements()
 
-      # Start measuring stats
-      @stats.begin()
-
       # Do the render
       @doRender()
-
-      @stats.end()
 
     else
       # Finished rendering
