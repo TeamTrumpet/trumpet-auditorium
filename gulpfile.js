@@ -4,6 +4,7 @@ var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
 var sourcemaps = require('gulp-sourcemaps');
 var del = require('del');
+var webserver = require('gulp-webserver');
 
 var path_scripts = './src/*.coffee';
 
@@ -12,6 +13,15 @@ var path_scripts = './src/*.coffee';
 gulp.task('clean', function(cb) {
   // You can use multiple globbing patterns as you would with `gulp.src`
   del(['build'], cb);
+});
+
+gulp.task('preview', function() {
+  gulp.src('.')
+    .pipe(webserver({
+      livereload: true,
+      directoryListing: true,
+      open: "http://localhost:8000/index.html"
+    }));
 });
 
 gulp.task('scripts', ['clean'], function() {
@@ -30,4 +40,4 @@ gulp.task('watch', function() {
   gulp.watch(path_scripts, ['scripts']);
 });
 
-gulp.task('default', ['scripts', 'watch']);
+gulp.task('default', ['scripts', 'preview', 'watch']);
