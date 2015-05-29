@@ -16,13 +16,13 @@
     <input type="button" value="<  Go Back" class="button go-back-btn" />
     <div class="buttons">
       <div class="compass">
-        <img src="images/compass-direction-icon.svg" id="compass-direction-icon" class="direction" style="transform: rotate(0deg); -webkit-transform: rotate(0deg);"/>
+        <img src="images/compass-direction-icon.svg" id="compass-direction-icon" class="direction" style="transform: rotate(0deg); -webkit-transform: rotate(0deg);" data-map-control="reset"/>
 
-        <img src="images/compass-arrows-icon.svg" class="arrows arrows-right"/>
-        <img src="images/compass-arrows-icon.svg" class="arrows arrows-left"/>
+        <img src="images/compass-arrows-icon.svg" class="arrows arrows-right" data-map-control="right"/>
+        <img src="images/compass-arrows-icon.svg" class="arrows arrows-left" data-map-control="left"/>
       </div>
-      <input type="button" value="" class="plus-btn" />
-      <input type="button" value="" class="minus-btn" />
+      <input type="button" value="" class="plus-btn" data-map-control="in" />
+      <input type="button" value="" class="minus-btn" data-map-control="out" />
     </div>
   </div>
 
