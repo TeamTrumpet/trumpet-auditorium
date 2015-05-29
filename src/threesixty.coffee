@@ -13,14 +13,19 @@ class ThreeSixty
   OUT: 'out'
   RESET: 'reset'
 
-  CAMERA_MODE: 'camera_mode'
-  ARROW_MODE: 'arrow_mode'
-
   constructor: (box, urls) ->
     @urls = urls
     @box = box
 
     @directions = {}
+
+    @grab =
+      active: false
+      position: new THREE.Vector2()
+      raycast:
+        old: new THREE.Vector3()
+        new: new THREE.Vector3()
+      queue: []
 
     @panTo =
       active: false
@@ -77,6 +82,8 @@ class ThreeSixty
 
     @parentObject.add @camera
 
+    @raycaster = new THREE.Raycaster()
+
     # Because we don't rotate in the Z direction, this will be a natural rotation order
     @camera.rotation.order = 'YXZ'
 
@@ -113,14 +120,16 @@ class ThreeSixty
         uniforms: uniforms
         side: THREE.BackSide)
 
+      # material.wireframe = true
+
       # Generate a sphere geometry
       meshGeometry = new (THREE.SphereGeometry)(ThreeSixty::Scale, 32, 32)
 
       # build the skybox Mesh using the texture cube
-      skyBox = new (THREE.Mesh)(meshGeometry, material)
+      @skyBox = new (THREE.Mesh)(meshGeometry, material)
 
       # and add it to the scene
-      @scene.add skyBox
+      @scene.add @skyBox
 
       cb()
 
@@ -229,12 +238,56 @@ class ThreeSixty
       return
 
   eventMouseDown: () =>
+    @grab.active = true
+
+    @updateMouseRaycast()
+
+    @startRender()
+
     return
 
   eventMouseMove: (e) =>
+    if @grab.active
+      @grab.position.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+      @grab.position.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+      @updateMouseRaycast()
+
+      @calculateRaycastAngle()
     return
 
   eventMouseUp: () =>
+    @grab.active = false
+    return
+
+  updateMouseRaycast: () =>
+    @grab.raycast.old = @grab.raycast.new.clone()
+
+    @raycaster.setFromCamera @grab.position, @camera
+
+    raycastPoint = @raycaster.intersectObject(@skyBox)[0]
+
+    console.log raycastPoint
+
+    @grab.raycast.new = raycastPoint.point.normalize()
+
+    return
+
+  calculateRaycastAngle: () =>
+    x = new THREE.Vector3 1, 0, 0
+    y = new THREE.Vector3 0, 1, 0
+
+    oldCROSSnew = new THREE.Vector3()
+    oldCROSSnew.crossVectors @grab.raycast.old, @grab.raycast.new
+
+    xRot = Math.acos(oldCROSSnew.dot(x))
+    yRot = Math.acos(oldCROSSnew.dot(y))
+
+    console.log "xRot = #{xRot} yRot = #{yRot}"
+
+    @parentObject.rotation.x += xRot
+    @parentObject.rotation.y += yRot
+
     return
 
   endKeyPress: (direction) =>
@@ -360,7 +413,7 @@ class ThreeSixty
 
   shouldRerender: =>
     # If there are some directions active...
-    _.some(@directions) or @panTo.active
+    @grab.active or _.some(@directions) or @panTo.active
 
   doRender: ->
     # Render the scene
