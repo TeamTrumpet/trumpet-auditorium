@@ -1,32 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>Panorama Viewer</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style type="text/css">
-			body {
-				width: 100%;
-				height: 100%;
-				margin: 0px; padding: 0;
-				overflow: hidden;
-			}
+<html>
+<head>
+  <meta name="viewport" content="width=device-width" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Trumpet</title>
+  <link rel="stylesheet" href="style.css" type="text/css" />
+  <link href='//fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
+  <link href='//fonts.googleapis.com/css?family=Raleway:400,300,500' rel='stylesheet' type='text/css'>
 
-			#debug {
-				padding: 10px;
-				margin: 0;
-				position: absolute;
-				top: 0px;
-				left: 0px;
-				background: white;
-			}
-		</style>
-	</head>
-	<body>
-		<pre id="debug"></pre>
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r11/Stats.min.js"></script>
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.2/underscore-min.js"></script>
-		<script type="text/javascript" src="build/threesixty.min.js"></script>
-	</body>
+  <script src="/dist/web/js/jquery.min.js" charset="utf-8"></script>
+  <script src="/dist/web/js/moment-with-locales.min.js" charset="utf-8"></script>
+  <script src="/dist/web/js/moment-timezone-with-data-2010-2020.min.js" charset="utf-8"></script>
+  <script src="/dist/web/js/handlebars.min.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/dist/web/js/app.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>
+<div class="main" ontouchstart="">
+
+  <div id="three-sixty-view" class="three-sixty-view">
+    <input type="button" value="<  Go Back" class="button go-back-btn" />
+    <div class="buttons">
+      <div class="compass">
+        <img src="images/compass-direction-icon.svg" id="compass-direction-icon" class="direction" style="transform: rotate(0deg); -webkit-transform: rotate(0deg);"/>
+
+        <img src="images/compass-arrows-icon.svg" class="arrows arrows-right"/>
+        <img src="images/compass-arrows-icon.svg" class="arrows arrows-left"/>
+      </div>
+      <input type="button" value="" class="plus-btn" />
+      <input type="button" value="" class="minus-btn" />
+    </div>
+  </div>
+
+	<pre id="debug"></pre>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r11/Stats.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.2/underscore-min.js"></script>
+	<script type="text/javascript" src="build/threesixty.min.js"></script>
+</div>
+</body>
 </html>
