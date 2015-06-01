@@ -2,7 +2,7 @@ class ThreeSixty
 
   Scale: 10
 
-  MaxRotation: Math.PI/4
+  MaxRotation: Math.PI/9.5
 
   # Direction constants
   LEFT: 'left'
@@ -263,6 +263,7 @@ class ThreeSixty
       @updateMouseRaycast()
 
       @calculateRaycastAngle()
+
     return
 
   eventMouseUp: () =>
@@ -274,7 +275,7 @@ class ThreeSixty
 
     raycastPoint = @raycaster.intersectObject(@skyBox)[0]
 
-    console.log raycastPoint
+    console.log raycastPoint.point
 
     @grab.raycast.new = raycastPoint.point.normalize()
 
@@ -295,12 +296,35 @@ class ThreeSixty
 
     qRot.multiply oldRot
 
-    # apply rotation, but erase z (roll) component
+    # now we try to fix up
+
+    # calculate current up
+    upCur = new THREE.Vector3(0, 1, 0)
+    upCur.applyQuaternion qRot
+    rightCur = new THREE.Vector3(1, 0, 0)
+    rightCur.applyQuaternion qRot
+
+    # upCur and rightCur give us the local x/y plane
+    # now we want to rotate the camera within this plane, so that it is upish
+    axis = new THREE.Vector3()
+    axis.crossVectors upCur, rightCur
+
+    # calculate the up we want
+    up = new THREE.Vector3(0, 1, 0)
+    up.projectOnPlane axis
+    up.normalize()
+
+    # now we calculate the transform between the two
+    fixUp = new THREE.Quaternion()
+    fixUp.setFromUnitVectors upCur, up
+
+    qRot.multiplyQuaternions fixUp, qRot
+
     eulerOrder = @parentObject.rotation.order
     @parentObject.rotation.setFromQuaternion qRot, eulerOrder
-    @parentObject.rotation.z = 0
 
-
+    # clamp x rotation (pitch)
+    @clampRotation(@parentObject)
     return
 
   endKeyPress: (direction) =>
