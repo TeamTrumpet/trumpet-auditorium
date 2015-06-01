@@ -237,10 +237,19 @@ class ThreeSixty
       # And finish
       return
 
-  eventMouseDown: () =>
+  eventMouseDown: (e) =>
     @grab.active = true
 
+    # Start drag-based rotation. We raycast a point on the outer sphere as our reference,
+    # based on where the user has clicked. This is stored as @grab.raycast.old.
+    # In eventMouseMove, we raycast again, find the new point on the sphere, and calculate
+    # the rotation required to rotate the reference point to that location. This
+    # rotation is applied to the camera, except for the Z component, which would be very
+    # confusing.
+    @grab.position.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+    @grab.position.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
     @updateMouseRaycast()
+    @grab.raycast.old = @grab.raycast.new
 
     @startRender()
 
@@ -248,8 +257,8 @@ class ThreeSixty
 
   eventMouseMove: (e) =>
     if @grab.active
-      @grab.position.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-      @grab.position.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+      @grab.position.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+      @grab.position.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
 
       @updateMouseRaycast()
 
@@ -261,8 +270,6 @@ class ThreeSixty
     return
 
   updateMouseRaycast: () =>
-    @grab.raycast.old = @grab.raycast.new.clone()
-
     @raycaster.setFromCamera @grab.position, @camera
 
     raycastPoint = @raycaster.intersectObject(@skyBox)[0]
@@ -274,19 +281,25 @@ class ThreeSixty
     return
 
   calculateRaycastAngle: () =>
-    x = new THREE.Vector3 1, 0, 0
-    y = new THREE.Vector3 0, 1, 0
+    # find angle between where the mouse ray hits the sphere and where we want it
+    # to hit (the spot on the sphere that was originally grabbed).
+    qRot = new THREE.Quaternion()
+    qRot.setFromUnitVectors @grab.raycast.new, @grab.raycast.old
 
-    oldCROSSnew = new THREE.Vector3()
-    oldCROSSnew.crossVectors @grab.raycast.old, @grab.raycast.new
+    # now we rotate the camera so that if we did the ray cast again, we would hit
+    # our reference point (where the user grabbed)
 
-    xRot = Math.acos(oldCROSSnew.dot(x))
-    yRot = Math.acos(oldCROSSnew.dot(y))
+    # add the new rotation to our original
+    oldRot = new THREE.Quaternion()
+    oldRot.setFromEuler @parentObject.rotation
 
-    console.log "xRot = #{xRot} yRot = #{yRot}"
+    qRot.multiply oldRot
 
-    @parentObject.rotation.x += xRot
-    @parentObject.rotation.y += yRot
+    # apply rotation, but erase z (roll) component
+    eulerOrder = @parentObject.rotation.order
+    @parentObject.rotation.setFromQuaternion qRot, eulerOrder
+    @parentObject.rotation.z = 0
+
 
     return
 
