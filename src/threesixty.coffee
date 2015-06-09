@@ -1,6 +1,7 @@
 class ThreeSixty
 
   Scale: 10
+  MouseWheelScale: -250
 
   MaxRotation: Math.PI/9.5
 
@@ -44,6 +45,7 @@ class ThreeSixty
           z: 0
 
     @isRendering = false
+    @renderOnce = false
 
     @compassNeedle = document.getElementById 'compass-direction-icon'
 
@@ -150,6 +152,7 @@ class ThreeSixty
     @renderer.domElement.addEventListener 'mousemove', @eventMouseMove, false
     @renderer.domElement.addEventListener 'mouseup', @eventMouseUp, false
     @renderer.domElement.addEventListener 'mouseout', @eventMouseUp, false
+    document.addEventListener 'mousewheel', @eventScroll, false
 
     mapControls = document.querySelectorAll '[data-map-control]'
 
@@ -237,6 +240,16 @@ class ThreeSixty
       # And finish
       return
 
+  eventScroll: (e) =>
+    @camera.position.z += e.wheelDelta / ThreeSixty::MouseWheelScale
+    @camera.position.z = @clampPosition(@camera.position.z)
+
+    @renderOnce = true
+    @startRender()
+
+    e.preventDefault()
+    false
+
   eventMouseDown: (e) =>
     @grab.active = true
 
@@ -274,8 +287,6 @@ class ThreeSixty
     @raycaster.setFromCamera @grab.position, @camera
 
     raycastPoint = @raycaster.intersectObject(@skyBox)[0]
-
-    console.log raycastPoint.point
 
     @grab.raycast.new = raycastPoint.point.normalize()
 
@@ -429,11 +440,12 @@ class ThreeSixty
 
   shouldRerender: =>
     # If there are some directions active...
-    @grab.active or _.some(@directions) or @panTo.active
+    @grab.active or _.some(@directions) or @panTo.active or @renderOnce
 
   doRender: ->
     # Render the scene
     @renderer.render @scene, @camera
+    @renderOnce = false
 
   render: =>
     if @shouldRerender()
